@@ -23,7 +23,7 @@ class PacketFactory
 {
     public static function getNextPacket(VersionInterface $version, $remainingData)
     {
-        while (isset($remainingData{1})) {
+        while (isset($remainingData[1])) {
             $bytesRead = 1;
             $remainingLength = 0;
             $multiplier = 1;
@@ -31,7 +31,7 @@ class PacketFactory
                 if ($bytesRead > 4) {
                     return false;
                 }
-                $str = $remainingData{$bytesRead};
+                $str = $remainingData[$bytesRead];
                 if ($str === false || strlen($str) != 1) {
                     return false;
                 }
@@ -54,7 +54,7 @@ class PacketFactory
 
     private static function getByMessage(VersionInterface $version, $bytesRead, $input)
     {
-        $controlPacketType = ord($input{0});
+        $controlPacketType = ord($input[0]);
 
         switch ($controlPacketType) {
             case ControlPacketType::MQTT_CONNACK:
@@ -79,7 +79,6 @@ class PacketFactory
                 return PublishRelease::parse($version, $input);
             case ControlPacketType::MQTT_PUBCOMP:
                 return PublishComplete::parse($version, $input);
-
         }
 
         throw new VersionViolation('Unexpected packet type: ' . $controlPacketType);

@@ -60,9 +60,9 @@ class Publish extends ControlPacket
             );
         }
 
-//        $this->addRawToPayLoad(
-//            $this->message
-//        );
+        // $this->addRawToPayLoad(
+        //     $this->message
+        // );
 
         return $this->payload;
     }
@@ -71,12 +71,12 @@ class Publish extends ControlPacket
     {
         $packet = new static($version);
 
-        $flags = ord($rawInput{0}) & 0x0f;
+        $flags = ord($rawInput[0]) & 0x0f;
         $packet->setDup($flags == 0x80);
         $packet->setRetain($flags == 0x01);
         $packet->setQos(($flags >> 1) & 0x03);
 
-        $topicLength = (ord($rawInput{$bytesRead}) << 8) + ord($rawInput{$bytesRead + 1});
+        $topicLength = (ord($rawInput[$bytesRead]) << 8) + ord($rawInput[$bytesRead + 1]);
         $packet->setTopic(substr($rawInput, 2 + $bytesRead, $topicLength));
         $payload = substr($rawInput, $bytesRead + 2 + $topicLength);
 
