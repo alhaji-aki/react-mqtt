@@ -55,8 +55,8 @@ class Client
     public function __construct(
         EventLoop\LoopInterface $loop,
         Protocols\VersionInterface $version,
-        Log\LoggerInterface $logger = null)
-    {
+        Log\LoggerInterface $logger = null
+    ) {
         $this->loop = $loop;
         $this->version = $version;
         $this->logger = $logger;
@@ -69,9 +69,9 @@ class Client
         }
     }
 
-    public function connect(string $host, int $port, ConnectionOptions $options = null)
+    public function connect(string $host, ConnectionOptions $options = null)
     {
-        $this->logger->debug(sprintf('Initiate connection to %s:%d', $host, $port));
+        $this->logger->debug(sprintf('Initiate connection to %s', $host));
         $this->state = self::STATE_CONNECTING;
 
         // Set default connection options, if none provided
@@ -79,7 +79,7 @@ class Client
             $options = $this->getDefaultConnectionOptions();
         }
 
-        $promise = $this->connector->connect(sprintf('%s:%d', $host, $port));
+        $promise = $this->connector->connect($host);
 
         $promise->then(function (Socket\ConnectionInterface $stream) {
             $this->listenPackets($stream);
@@ -128,8 +128,8 @@ class Client
 
     protected function sendConnectPacket(
         Socket\ConnectionInterface $stream,
-        ConnectionOptions $options): Promise\PromiseInterface
-    {
+        ConnectionOptions $options
+    ): Promise\PromiseInterface {
         $packet = new Packets\Connect(
             $this->version,
             $options->username,
@@ -147,7 +147,7 @@ class Client
                 $deferred->resolve($stream);
             }
             $deferred->reject(
-                new ConnectionException('Unable to establish connection, statusCode is '.$ack->getStatusCode())
+                new ConnectionException('Unable to establish connection, statusCode is ' . $ack->getStatusCode())
             );
         });
 
@@ -181,7 +181,7 @@ class Client
         $subscribePacket = new Packets\Subscribe($this->version);
         $subscribePacket->addSubscription($topic, $qos);
         $this->sendPacketToStream($stream, $subscribePacket);
-        $this->logger->debug('Send subscription, packetId: '.$subscribePacket->getPacketId());
+        $this->logger->debug('Send subscription, packetId: ' . $subscribePacket->getPacketId());
 
         $deferred = new Promise\Deferred();
         $stream->on(Packets\SubscribeAck::EVENT, function (Packets\SubscribeAck $ackPacket) use ($stream, $deferred, $subscribePacket) {
@@ -233,8 +233,7 @@ class Client
         int $qos = 0,
         bool $dup = false,
         bool $retain = false
-    ): Promise\PromiseInterface
-    {
+    ): Promise\PromiseInterface {
         if ($this->state !== self::STATE_CONNECTED) {
             return new Promise\RejectedPromise('Connection unavailable');
         }
@@ -251,13 +250,13 @@ class Client
         if ($success) {
             if ($qos === Packets\QoS\Levels::AT_LEAST_ONCE_DELIVERY) {
                 $stream->on(Packets\PublishAck::EVENT, function (Packets\PublishAck $message) use ($deferred, $stream) {
-                    $this->logger->debug('QoS: '.Packets\QoS\Levels::AT_LEAST_ONCE_DELIVERY.', packetId: '.$message->getPacketId());
+                    $this->logger->debug('QoS: ' . Packets\QoS\Levels::AT_LEAST_ONCE_DELIVERY . ', packetId: ' . $message->getPacketId());
                     $deferred->resolve($stream);
                 });
             } elseif ($qos === Packets\QoS\Levels::EXACTLY_ONCE_DELIVERY) {
                 $stream->on(Packets\PublishReceived::EVENT, function (Packets\PublishReceived $receivedPacket) use ($stream, $deferred, $publishPacket) {
                     if ($publishPacket->getPacketId() === $receivedPacket->getPacketId()) {
-                        $this->logger->debug('QoS: '.Packets\QoS\Levels::AT_LEAST_ONCE_DELIVERY.', packetId: '.$receivedPacket->getPacketId());
+                        $this->logger->debug('QoS: ' . Packets\QoS\Levels::AT_LEAST_ONCE_DELIVERY . ', packetId: ' . $receivedPacket->getPacketId());
 
                         $releasePacket = new Packets\PublishRelease($this->version);
                         $releasePacket->setPacketId($receivedPacket->getPacketId());
@@ -290,8 +289,7 @@ class Client
         Socket\ConnectionInterface $stream,
         Packets\ControlPacket $controlPacket,
         string $additionalPayload = ''
-    ): bool
-    {
+    ): bool {
         $this->logger->debug('Send packet to stream', ['packet' => get_class($controlPacket)]);
         $message = $controlPacket->get($additionalPayload);
 

@@ -4,7 +4,7 @@ use React\Socket\ConnectionInterface;
 
 require_once __DIR__ . '/mqtt.php';
 
-$connection = $mqtt->connect($config['host'], $config['port'], $config['options']);
+$connection = $mqtt->connect($config['host'], $config['options']);
 
 $connection->then(function (ConnectionInterface $stream) use ($mqtt, $loop) {
     /**
