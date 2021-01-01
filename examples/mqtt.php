@@ -9,7 +9,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $loop = React\EventLoop\Factory::create();
 
 $config = [
-    'host' => '127.0.0.1:1833',
+    'host' => '127.0.0.1:1883',
     'options' => new ConnectionOptions()
 ];
 
